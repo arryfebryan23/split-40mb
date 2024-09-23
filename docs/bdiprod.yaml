@@ -1,0 +1,171 @@
+---
+architecture: PGD-Always-ON
+cluster_name: pgd5-bdi-prod
+cluster_tags: {}
+
+cluster_vars:
+  apt_repository_list: []
+  bdr_database: omnidb
+  bdr_node_group: pgd5-bdi-prod
+  postgres_port: 'changeme'
+  barman_home: 'changeme'
+  bdr_node_groups:
+  - name: pgd5-bdi-prod
+  - name: pgd_a_subgroup
+    options:
+      enable_proxy_routing: true
+      enable_raft: true
+      location: pgd-a
+    parent_group_name: pgd5-bdi-prod
+  - name: pgd_b_subgroup
+    options:
+      enable_proxy_routing: true
+      enable_raft: true
+      location: pgd-b
+    parent_group_name: pgd5-bdi-prod
+  bdr_version: '5'
+  default_pgd_proxy_options:
+    listen_port: 6432
+    read_listen_port: 6433
+  edb_repositories:
+  - enterprise
+  - postgres_distributed
+  epas_redwood_compat: false
+  failover_manager: pgd
+  ##bdr_package_version:
+  postgres_package_version: '15.8*'
+  postgres_coredump_filter: '0xff'
+  postgres_flavour: epas
+  postgres_version: '15'
+  postgres_data_dir: '/PGDATA/as15/data/'
+  postgres_wal_dir: '/PGWALL/as15/pg_wal'
+  preferred_python_version: python3
+  use_volatile_subscriptions: false
+  ##use_local_repo_only: true
+  yum_repository_list:
+  - EPEL
+
+locations:
+- Name: pgd-a
+- Name: pgd-b
+
+instance_defaults:
+  platform: bare
+  vars:
+    ansible_user: tpa_user
+
+instances:
+### INSTANCES DC
+- Name: d1pdprodbalv001
+  ip_address: 10.194.115.91
+  backup: d1pdprodbalv005
+  location: pgd-a
+  node: 1
+  role:
+  - bdr
+  vars:
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: d1pdprodbalv002
+  ip_address: 10.194.115.92
+  location: pgd-a
+  node: 2
+  role:
+  - bdr
+  vars:
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: d1pdprodbalv003
+  ip_address: 10.194.115.93
+  location: pgd-a
+  node: 3
+  role:
+  - pgd-proxy
+  vars:
+    bdr_child_group: pgd_a_subgroup
+- Name: d1pdprodbalv004
+  ip_address: 10.194.115.94
+  location: pgd-a
+  node: 4
+  role:
+  - pgd-proxy
+  vars:
+    bdr_child_group: pgd_a_subgroup
+- Name: d1pdprodbalv005
+  ip_address: 10.194.115.95
+  location: pgd-a
+  node: 5
+  role:
+  - barman
+- Name: d1pdprodbalv006
+  ip_address: 10.194.115.96
+  location: pgd-a
+  node: 6
+  role:
+  - bdr
+  - witness
+  vars:
+    bdr_child_group: pgd_a_subgroup
+### INSTANCES DRC
+- Name: d2pdprodbalv001
+  ip_address: 10.192.115.91
+  backup: d2pdprodbalv005
+  location: pgd-b
+  node: 7
+  role:
+  - bdr
+  vars:
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: d2pdprodbalv002
+  ip_address: 10.192.115.92
+  location: pgd-b
+  node: 8
+  role:
+  - bdr
+  vars:
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: d2pdprodbalv003
+  ip_address: 10.192.115.93
+  location: pgd-b
+  node: 9
+  role:
+  - pgd-proxy
+  vars:
+    bdr_child_group: pgd_a_subgroup
+- Name: d2pdprodbalv004
+  ip_address: 10.192.115.94
+  location: pgd-b
+  node: 10
+  role:
+  - pgd-proxy
+  vars:
+    bdr_child_group: pgd_a_subgroup
+- Name: d2pdprodbalv005
+  ip_address: 10.192.115.95
+  location: pgd-b
+  node: 11
+  role:
+  - barman
+- Name: d2pdprodbalv006
+  ip_address: 10.192.115.96
+  location: pgd-b
+  node: 12
+  role:
+  - bdr
+  - witness
+  vars:
+    bdr_child_group: pgd_a_subgroup
+### RESERVED PEM
+# - Name: changeme-pem-server
+#   ip_address: 10.192.115.100
+#   location: pgd-a
+#   node: 13
+#   role:
+#   - pem-server
+#   - pem-agent
