@@ -1,0 +1,463 @@
+####################################################################################################
+###Requirement###
+Operating System = CentOS / RHEL 8
+Node = 7 
+Spec = 2 vCPU - 2 GB RAM
+Latest patch for all package
+EDB Token for repos 2.0 (EDB Postgres Distributed)
+####################################################################################################
+
+sudo apt install edb-bdr5-pg16 edb-bdr-utilities
+sudo apt install edb-bdr5-epas16 edb-bdr-utilities
+sudo apt install edb-bdr5-epas15 edb-bdr-utilities
+
+####################################################################################################
+Important config
+####################################################################################################
+
+
+barman_home: ''
+postgres_data_dir: '/edb/as15/data/'
+postgres_wal_dir: '/edb/as15/pg_wal/'
+bdr_package_version
+postgres_package_version
+postgres_port
+
+####################################################################################################
+Configure repo online
+####################################################################################################
+
+sed -i "s@u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4@n7lF4aGitz996CIqguXyqXQAKygT2PWJ@g"
+
+-- ARRY 31
+curl -1sLf 'https://downloads.enterprisedb.com/C7hh80t8Pbb0b1BqaSrPhkARvi21VYCE/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/C7hh80t8Pbb0b1BqaSrPhkARvi21VYCE/enterprise/setup.rpm.sh' | sudo -E bash
+
+curl -1sLf 'https://downloads.enterprisedb.com/n7lF4aGitz996CIqguXyqXQAKygT2PWJ/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/n7lF4aGitz996CIqguXyqXQAKygT2PWJ/enterprise/setup.rpm.sh' | sudo -E bash
+
+curl -1sLf 'https://downloads.enterprisedb.com/n7lF4aGitz996CIqguXyqXQAKygT2PWJ/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/n7lF4aGitz996CIqguXyqXQAKygT2PWJ/enterprise/setup.rpm.sh' | sudo -E bash
+
+curl -1sLf 'https://downloads.enterprisedb.com/NnXRBjB7sYkoWpOqphOEgc49aE17Fmpz/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/NnXRBjB7sYkoWpOqphOEgc49aE17Fmpz/enterprise/setup.rpm.sh' | sudo -E bash
+
+curl -1sLf 'https://downloads.enterprisedb.com/u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4/enterprise/setup.rpm.sh' | sudo -E bash
+
+NnXRBjB7sYkoWpOqphOEgc49aE17Fmpz
+u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4
+
+-- MAS AZMAN
+curl -1sLf 'https://downloads.enterprisedb.com/aTUE6GlXL9EfNsuC3LpOxiHFuwe9CPRP/postgres_distributed/setup.rpm.sh' | sudo -E bash 	-- work
+curl -1sLf 'https://downloads.enterprisedb.com/aTUE6GlXL9EfNsuC3LpOxiHFuwe9CPRP/enterprise/setup.rpm.sh' | sudo -E bash
+
+-- MAS AZIZ
+curl -1sLf 'https://downloads.enterprisedb.com/HfACLNCohvsvmQewR9HPnmvTxIx93MfT/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/HfACLNCohvsvmQewR9HPnmvTxIx93MfT/enterprise/setup.rpm.sh' | sudo -E bash
+
+-- MAS PRIYO
+curl -1sLf 'https://downloads.enterprisedb.com/2pXP46CV95XNPzXJ9O9PT1RncvoLP5Hm/postgres_distributed/setup.rpm.sh' | sudo -E bash
+curl -1sLf 'https://downloads.enterprisedb.com/2pXP46CV95XNPzXJ9O9PT1RncvoLP5Hm/enterprise/setup.rpm.sh' | sudo -E bash			-- work
+
+####################################################################################################
+Step by step BDR ITG
+####################################################################################################
+
+hostname:
+pgd-a1
+pgd-a2
+pgd-a3
+pgd-b1
+pgd-b2
+pgd-b3
+pgd-witness
+
+1) Prepare sudoers user for Deployment proses in every node
+# useradd bdr_user
+# passwd bdr_user
+# visudo
+--add below lines
+bdr_user ALL=(ALL) NOPASSWD: ALL
+Defaults:bdr_user !requiretty
+
+tpa_user ALL=(ALL) NOPASSWD: ALL
+Defaults:tpa_user !requiretty
+
+#usermod -aG wheel bdr_user
+# vi /etc/hosts
+pgd-a1 			<ip_address>
+pgd-a2			<ip_address>
+pgd-a3			<ip_address>
+pgd-b1          <ip_address>
+pgd-b2          <ip_address>
+pgd-b3          <ip_address>
+pgd-witness     <ip_address>
+
+2) Prepare passwordless connection on each node for bdr_user (on deployment node / pgd-a1)
+# su - bdr_user
+$ cd
+$ ssh-keygen -t rsa
+$ ssh-copy-id <user>@<ip_addr-ess>
+
+3) Install EDB repositories on all node
+
+LcrKXrKFo9tZX6Dk
+# curl -1sLf 'https://downloads.enterprisedb.com/LcrKXrKFo9tZX6Dk/postgres_distributed/setup.rpm.sh' | sudo -E bash
+# curl -1sLf 'https://downloads.enterprisedb.com/LcrKXrKFo9tZX6Dk/enterprise/setup.rpm.sh' | sudo -E bash
+
+# curl -1sLf 'https://downloads.enterprisedb.com/<your-token>/postgres_distributed/setup.rpm.sh' | sudo -E bash
+# curl -1sLf 'https://downloads.enterprisedb.com/<your-token>/enterprise/setup.rpm.sh' | sudo -E bash
+# yum repolist
+
+4) Install tpaexec for deployment (on deployment node / pgd-a1)
+# yum install tpaexec -y
+# sudo /opt/EDB/TPA/bin/tpaexec setup
+# /opt/EDB/TPA/bin/tpaexec selftest
+
+5) Adjust the bdr_user profile (on deployment node / pgd-a1)
+# su - bdr_user
+
+# NEW TOKEN
+NnXRBjB7sYkoWpOqphOEgc49aE17Fmpz
+
+echo "export EDB_SUBSCRIPTION_TOKEN=C7hh80t8Pbb0b1BqaSrPhkARvi21VYCE" >> .bash_profile
+echo "export EDB_SUBSCRIPTION_TOKEN=C7hh80t8Pbb0b1BqaSrPhkARvi21VYCE" >> .bashrc
+echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bash_profile
+echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bashrc
+
+$ echo "export EDB_SUBSCRIPTION_TOKEN=u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4" >> .bash_profile
+$ echo "export EDB_SUBSCRIPTION_TOKEN=u4LFub14Imj8ePe9FXiFOxQ56pB2vLO4" >> .bashrc
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bash_profile
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bashrc
+
+$ echo "export EDB_SUBSCRIPTION_TOKEN=n7lF4aGitz996CIqguXyqXQAKygT2PWJ" >> .bash_profile
+$ echo "export EDB_SUBSCRIPTION_TOKEN=n7lF4aGitz996CIqguXyqXQAKygT2PWJ" >> .bashrc
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bash_profile
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bashrc
+$ source .bash_profile
+
+-- another token
+$ echo "export EDB_SUBSCRIPTION_TOKEN=2pXP46CV95XNPzXJ9O9PT1RncvoLP5Hm" >> .bash_profile
+$ echo "export EDB_SUBSCRIPTION_TOKEN=2pXP46CV95XNPzXJ9O9PT1RncvoLP5Hm" >> .bashrc
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bash_profile
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bashrc
+$ source .bash_profile
+
+-- another token
+$ echo "export EDB_SUBSCRIPTION_TOKEN=aTUE6GlXL9EfNsuC3LpOxiHFuwe9CPRP" >> .bash_profile
+$ echo "export EDB_SUBSCRIPTION_TOKEN=aTUE6GlXL9EfNsuC3LpOxiHFuwe9CPRP" >> .bashrc
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bash_profile
+$ echo "export PATH=$PATH:/opt/EDB/TPA/bin" >> .bashrc
+$ source .bash_profile
+
+6) Configure PGD deployment with TPAexec
+######################
+### See another configuiration down below
+############
+
+# /opt/EDB/TPA/bin/tpaexec configure /pgd5-config -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --redwood
+
+-- another option
+/opt/EDB/TPA/bin/tpaexec configure /pgd5-config -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --location-names pgda --no-git --distribution CentOs --os-version 7 --platform bare --redwood
+
+# chown -R bdr_user. /pgd5-config
+# vi /pgd5-config/config.yml
+*adjust your setting and ip for server*
+
+7) Provisioning PGD deployment with TPAexec
+# su - bdr_user
+$ cd /pgd5-config
+$ tpaexec provison .
+$ ssh-copy-id -i <anything>.pub bdr_user@<ip_address>
+
+8) PGD deployment with TPAexec 
+# su - bdr_user
+$ cd /pgd5-config
+$ tpaexec deploy .
+
+9) PGD health check after deployment
+# su - enterprisedb
+$ pgd check-health
+$ pgd verify-cluster
+$ pgd verify-settings
+
+####################################################################################################
+DOWNLOAD LOCAL REPO WITH TPA EXEC 
+####################################################################################################
+
+- docker
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install docker-ce docker-ce-cli containerd.io
+
+/opt/EDB/TPA/bin/tpaexec download-packages . --os RedHat --os-version 9
+/opt/EDB/TPA/bin/tpaexec download-packages . --os RedHat --os-version 8
+/opt/EDB/TPA/bin/tpaexec download-packages . --os RedHat --os-version 7
+
+yum search pcp-system-tools.x86_64
+yum search selinux-policy-targeted.noarch
+
+efm
+pem
+barman
+pgd
+epas
+edbpge
+
+
+########################################################################################################################################################################################################
+CONFIGURE OPTION
+########################################################################################################################################################################################################
+
+
+-- PGD Always ON 5
+/opt/EDB/TPA/bin/tpaexec configure pgd5-config-local -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --redwood
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-config-global-barman -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing global --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --redwood
+
+-- BDR Always ON 4
+/opt/EDB/TPA/bin/tpaexec configure pgd4-config-global --architecture BDR-Always-ON --layout silver --harp-consensus-protocol etcd  --epas 14 --bdr-version 4 --bdr-database bdrdb --no-git --distribution CentOs --os-version 7 --platform bare --redwood
+
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-single-site -a PGD-Always-ON --epas 15 --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing global --data-nodes-per-location 3 --location-names pgd-a --no-git --distribution RedHat --os-version 8 --platform bare --redwood
+
+
+/opt/EDB/TPA/bin/tpaexec configure cg-pgd5-single-site -a PGD-Always-ON --epas 15 --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing global --data-nodes-per-location 3 --location-names pgda --no-git --distribution RedHat --os-version 8 --platform bare --redwood
+
+##########
+### DANAMON APP
+########
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-danamon -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution RedHat --os-version 8 --platform bare --enable-pem --redwood
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-itg-bdi-preprod-clone -a PGD-Always-ON --epas 15 --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --add-witness-node-per-location --data-nodes-per-location 2 --location-names pgd-a pgd-b --no-git --distribution RedHat --os-version 8 --platform bare --no-redwood
+
+
+
+##########
+### APP
+########
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-13 -a PGD-Always-ON --epas 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --enable-pem --redwood
+
+##########
+### Postgres Extended
+########
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-13 -a PGD-Always-ON --edb-postgres-extended 13  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --enable-pem
+
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-14 -a PGD-Always-ON --edb-postgres-extended 14  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --enable-pem
+
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-15 -a PGD-Always-ON --edb-postgres-extended 15  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --enable-pem
+
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-16 -a PGD-Always-ON --edb-postgres-extended 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 7 --platform bare --enable-pem
+
+
+##########
+### M1
+########
+tpaexec configure cluster-edb-1 --architecture M1 --platform bare --distribution RedHat --os-version 8 --epas 16  --data-nodes-per-location 2 --redwood --enable-efm --no-git
+
+
+
+tpaexec configure stand-alone-epas16 --architecture M1 --platform bare --distribution RedHat --os-version 8 --epas 16  --data-nodes-per-location 2 --redwood --enable-efm --no-git --use-local-repo-only --enable-pem
+
+tpaexec configure stand-alone-edbpge16 --architecture M1 --platform bare --distribution RedHat --os-version 8 --edb-postgres-extended 16 --data-nodes-per-location 2 --redwood --enable-efm --no-git --use-local-repo-only --enable-pem
+
+##########
+### Centos 8 pge
+########
+
+/opt/EDB/TPA/bin/tpaexec configure pgd5-pge-16 -a PGD-Always-ON --edb-postgres-extended 16  --bdr-version 5 --bdr-database bdrdb --pgd-proxy-routing local --data-nodes-per-location 3 --witness-only-location pgdc --location-names pgda pgdb pgdc --no-git --distribution CentOs --os-version 8 --platform bare
+
+########################################################################################################################################################################################################
+Set python alternatives manually
+########################################################################################################################################################################################################
+
+alternatives --set python /usr/bin/python3
+alternatives --config java
+
+####################################################################################################
+-- Config.yml
+####################################################################################################
+
+
+architecture: PGD-Always-ON
+cluster_name: epas-pgd5-config
+cluster_tags: {}
+
+cluster_vars:
+  apt_repository_list: []
+  bdr_database: bdrdb
+  bdr_node_group: epas-pgd5-config
+  bdr_node_groups:
+  - name: epas-pgd5-config
+  - name: pgd_a_subgroup
+    options:
+      enable_proxy_routing: true
+      enable_raft: true
+      location: pgd-a
+    parent_group_name: epas-pgd5-config
+  - name: pgd_b_subgroup
+    options:
+      enable_proxy_routing: true
+      enable_raft: true
+      location: pgd-b
+    parent_group_name: epas-pgd5-config
+  - name: pgd_c_subgroup
+    options:
+      enable_proxy_routing: false
+      enable_raft: false
+      location: pgd-c
+    parent_group_name: epas-pgd5-config
+  bdr_version: '5'
+  default_pgd_proxy_options:
+    listen_port: 6432
+  edb_repositories:
+  - postgres_distributed
+  enable_pg_backup_api: false
+  epas_redwood_compat: true
+  failover_manager: pgd
+  postgres_coredump_filter: '0xff'
+  postgres_flavour: epas
+  postgres_version: '15'
+  postgres_port: '5444'
+  preferred_python_version: python3
+  use_local_repo_only: false
+  use_volatile_subscriptions: false
+  yum_repository_list:
+  - EPEL
+
+locations:
+- Name: pgd-a
+- Name: pgd-b
+- Name: pgd-c
+
+instance_defaults:
+  platform: bare
+  vars:
+    ansible_user: bdr_user
+
+instances:
+- Name: pgd-a1
+  ip_address: 192.168.0.151
+  location: pgd-a
+  node: 1
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-a2
+  ip_address: 192.168.0.152
+  location: pgd-a
+  node: 2
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-a3
+  ip_address: 192.168.0.153
+  location: pgd-a
+  node: 3
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_a_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-b1
+  ip_address: 192.168.0.154
+  location: pgd-b
+  node: 4
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_b_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-b2
+  ip_address: 192.168.0.155
+  location: pgd-b
+  node: 5
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_b_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-b3
+  ip_address: 192.168.0.156
+  location: pgd-b
+  node: 6
+  role:
+  - bdr
+  - pgd-proxy
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_b_subgroup
+    bdr_node_options:
+      route_priority: 100
+- Name: pgd-witness
+  ip_address: 192.168.0.157
+  location: pgd-c
+  node: 7
+  role:
+  - bdr
+  - witness
+  vars:
+    postgres_data_dir: '/edb/as15/data/'
+    postgres_wal_dir: '/edb/as15/pg_wal/'
+    bdr_child_group: pgd_c_subgroup
+
+#################################################################################################### 
+
+cluster_vars:
+  bdr_database: directdebit
+  bdr_node_group: bdrgroup
+  bdr_version: '4'
+  enable_pg_backup_api: false
+  epas_redwood_compat: true
+  failover_manager: harp
+  harp_consensus_protocol: etcd
+  postgres_coredump_filter: '0xff'
+  postgres_version: '14'
+  postgresql_flavour: epas
+  preferred_python_version: python3
+  postgres_package_version: '14.6*'
+  tpa_2q_repositories:
+  - products/bdr4/release
+  - products/harp/release
+  - products/livecompare/release
+  use_volatile_subscriptions: false
+  use_local_repo_only: false
+  postgres_data_dir: '/mnt/14/data'
+  extra_bdr_dbs:
+    - 'simple_otp'
+    - ''
+  postgres_conf_settings:
+    max_wal_senders: '48'
+    max_replication_slots: '48'
+    max_worker_processes: '150'
